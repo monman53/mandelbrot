@@ -69,7 +69,7 @@ void main() {
 <body>
     <div id="app">
         <div id="main-stage">
-            <canvas id="main-canvas"></canvas>
+            <canvas id="main-canvas" @pointerdown="pointerDownHandler" @pointerup="pointerUpHandler" @pointermove="pointerMoveHandler"></canvas>
             <svg id="main-svg"></svg>
             <div id="main-ui">
                 (width, height) : ({{parameters.width.value}}, {{parameters.height.value}}) <br />
@@ -115,7 +115,9 @@ void main() {
                         height: { type: 'float', value: 128. },
                         maxIteration: { type: 'int', value: maxIteration0 },
                         threshold: { type: 'float', value: threshold0 }
-                    }
+                    },
+                    pointerDrag: false,
+                    moveHandler: null,
                 };
             },
             methods: {
@@ -141,7 +143,36 @@ void main() {
                     this.parameters.cy.value = cy0;
                     this.parameters.maxIteration.value = maxIteration0;
                     this.parameters.threshold.value = threshold0;
-                }
+                },
+                getMousePosition(e) {
+                    const rect = mainStage.getBoundingClientRect()
+                    const xPix = e.clientX - rect.left;
+                    const yPix = e.clientY - rect.top;
+                    return [xPix, yPix];
+                },
+                pointerDownHandler(e) {
+                    let [sx, sy] = this.getMousePosition(e);
+                    let scx = this.parameters.cx.value;
+                    let scy = this.parameters.cy.value;
+                    const handler = (e) => {
+                        let [nx, ny] = this.getMousePosition(e);
+                        const dx = (nx - sx) / this.parameters.scale.value;
+                        const dy = (ny - sy) / this.parameters.scale.value;
+                        this.parameters.cx.value = scx - dx;
+                        this.parameters.cy.value = scy + dy;
+                    };
+                    this.moveHandler = handler;
+                    this.pointerDrag = true;
+                },
+                pointerMoveHandler(e) {
+                    if (this.pointerDrag) {
+                        this.moveHandler(e);
+                    }
+                },
+                pointerUpHandler(e) {
+                    this.pointerDrag = false;
+                    this.moveHandler = null;
+                },
             },
             watch: {
                 parameters: {
