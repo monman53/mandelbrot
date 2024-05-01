@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #main-stage {
+            /* to avoid horizontal scroll bar */
+            overflow: hidden;
+            position: relative;
+        }
+
+        #main-canvas,
+        #main-svg,
+        #main-ui {
+            position: absolute;
+        }
+
+        #main-ui {
+            padding: 0.5em;
+            background-color: #0002;
+        }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@v0.164.1/build/three.module.js"
+        }
+      }
+    </script>
+    <title>Mandelbrot Set Explorer</title>
+</head>
+
+<script type="x-shader/x-fragment" id="fragment-shader">
+uniform float scale;
+uniform float cx, cy;
+uniform float width, height;
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy - 0.5 * vec2(width, height)) / scale + vec2(cx, cy);
+
+    float a = uv.x;
+    float b = uv.y;
+    float x = 0.;
+    float y = 0.;
+
+    for(int i=0;i<80;i++){
+        float nx = x*x-y*y+a;
+        float ny = 2.*x*y+b;
+        x = nx;
+        y = ny;
+    }
+
+    if (x*x + y*y < 100.) {
+        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    } else {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    }
+}
+</script>
+
+<body>
+    <div id="app">
+        <div id="main-stage">
+            <canvas id="main-canvas"></canvas>
+            <svg id="main-svg"></svg>
+            <div id="main-ui">
+                (width, height) : ({{parameters.width.value}}, {{parameters.height.value}}) <br />
+                (cx, cy) : ({{parameters.cx.value}}, {{parameters.cy.value}})<br />
+                scale : {{parameters.scale.value}}<br />
+            </div>
+        </div>
+    </div>
+    <script type="module">
+        import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
+        // import { createApp } from "https://unpkg.com/vue@3/dist/vue.esm-browser.prod.js";
+        import * as THREE from "three";
+
+        let scene, renderer, camera;
+        let mainStage, mainCanvas;
+
+        createApp({
+            data() {
+                return {
+                    parameters: {
+                        cx: { type: 'float', value: -1. },
+                        cy: { type: 'float', value: 0. },
+                        scale: { type: 'float', value: 300. },
+                        width: { type: 'float', value: 128. },
+                        height: { type: 'float', value: 128. },
+                    }
+                };
+            },
+            methods: {
+                render() {
+                    renderer.render(scene, camera);
+                },
+                resize() {
+                    let newWidth = window.innerWidth;
+                    let newHeight = window.innerHeight;
+
+                    this.parameters.width.value = window.innerWidth;
+                    this.parameters.height.value = window.innerHeight;
+
+                    mainStage.style.height = newHeight + "px";
+
+                    renderer.setSize(newWidth, newHeight);
+
+                    this.render();
+                }
+            },
+            mounted() {
+                mainStage = document.getElementById("main-stage");
+                mainCanvas = document.getElementById("main-canvas");
+
+                // prepare webgl with Three.js
+                renderer = new THREE.WebGLRenderer({ canvas: mainCanvas });
+                scene = new THREE.Scene();
+                camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 1);
+                camera.position.z = 1;
+                scene.add(camera)
+
+                // prepare shaders
+                let screenShaderMaterial = new THREE.ShaderMaterial({
+                    fragmentShader: document.getElementById('fragment-shader').textContent,
+                    uniforms: this.parameters,
+                });
+
+                // set plane
+                let plane = new THREE.PlaneGeometry(1.0, 1.0);
+                let mesh = new THREE.Mesh(plane, screenShaderMaterial);
+                scene.add(mesh);
+
+                this.resize();
+                window.addEventListener("resize", this.resize);
+            },
+        }).mount("#app");
+    </script>
+    <h1>Mandelbrot Set Explorer</h1>
+    <h2>Description</h2>
+    <p></p>
+    <h2>How To Use</h2>
+    <ul>
+        <li>Zoom in/out: Mouse Wheel</li>
+        <li>Move: Mouse Drag</li>
+    </ul>
+    <h2>Contacts</h2>
+    <ul>
+        <li>Profile:</li>
+        <li>GitHub:</li>
+    </ul>
+</body>
+
+</html>
