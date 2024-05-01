@@ -86,6 +86,7 @@ void main() {
                     <input type="range" min="0" max="200" step="1" v-model.number="parameters.maxIteration.value">
                     maxIteration: {{parameters.maxIteration.value}}
                 </label><br>
+                <button @click="reset">Reset</button>
             </div>
         </div>
     </div>
@@ -97,17 +98,23 @@ void main() {
         let scene, renderer, camera;
         let mainStage, mainCanvas;
 
+        const cx0 = -0.8;
+        const cy0 = 0.0;
+        const scale0 = 300.;
+        const maxIteration0 = 100;
+        const threshold0 = 100.;
+
         createApp({
             data() {
                 return {
                     parameters: {
-                        cx: { type: 'float', value: -0.8 },
-                        cy: { type: 'float', value: 0. },
-                        scale: { type: 'float', value: 300. },
-                        width: { type: 'float', value: 128. },
+                        cx: { type: 'float', value: cx0 },
+                        cy: { type: 'float', value: cy0 },
+                        scale: { type: 'float', value: scale0 },
+                        width: { type: 'float', value: 128 },
                         height: { type: 'float', value: 128. },
-                        maxIteration: { type: 'int', value: 100 },
-                        threshold: { type: 'float', value: 100. }
+                        maxIteration: { type: 'int', value: maxIteration0 },
+                        threshold: { type: 'float', value: threshold0 }
                     }
                 };
             },
@@ -127,6 +134,13 @@ void main() {
                     renderer.setSize(newWidth, newHeight);
 
                     this.render();
+                },
+                reset() {
+                    this.parameters.scale.value = scale0;
+                    this.parameters.cx.value = cx0;
+                    this.parameters.cy.value = cy0;
+                    this.parameters.maxIteration.value = maxIteration0;
+                    this.parameters.threshold.value = threshold0;
                 }
             },
             watch: {
