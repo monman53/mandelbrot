@@ -21,6 +21,7 @@
 
         #main-ui {
             padding: 0.5em;
+            color: white;
             background-color: #0002;
         }
     </style>
@@ -38,6 +39,8 @@
 uniform float scale;
 uniform float cx, cy;
 uniform float width, height;
+uniform int maxIteration;
+uniform float threshold;
 
 void main() {
     vec2 uv = (gl_FragCoord.xy - 0.5 * vec2(width, height)) / scale + vec2(cx, cy);
@@ -47,18 +50,19 @@ void main() {
     float x = 0.;
     float y = 0.;
 
-    for(int i=0;i<80;i++){
+    int itr = 0;
+    for(;itr<maxIteration;itr++){
         float nx = x*x-y*y+a;
         float ny = 2.*x*y+b;
         x = nx;
         y = ny;
+        if(x*x+y*y>threshold){
+            break;
+        }
     }
 
-    if (x*x + y*y < 100.) {
-        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-    } else {
-        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-    }
+    float grad = float(itr) / float(maxIteration);
+    gl_FragColor = vec4(grad, grad, grad, 1.0);
 }
 </script>
 
@@ -91,6 +95,8 @@ void main() {
                         scale: { type: 'float', value: 300. },
                         width: { type: 'float', value: 128. },
                         height: { type: 'float', value: 128. },
+                        maxIteration: { type: 'int', value: 100 },
+                        threshold: { type: 'float', value: 100. }
                     }
                 };
             },
