@@ -69,7 +69,8 @@ void main() {
 <body>
     <div id="app">
         <div id="main-stage">
-            <canvas id="main-canvas" @pointerdown="pointerDownHandler" @pointerup="pointerUpHandler" @pointermove="pointerMoveHandler"></canvas>
+            <canvas id="main-canvas" @pointerdown="pointerDownHandler" @pointerup="pointerUpHandler"
+                @pointermove="pointerMoveHandler" @wheel="wheelHandler"></canvas>
             <svg id="main-svg"></svg>
             <div id="main-ui">
                 (width, height) : ({{parameters.width.value}}, {{parameters.height.value}}) <br />
@@ -174,6 +175,27 @@ void main() {
                 pointerUpHandler(e) {
                     this.pointerDrag = false;
                     this.moveHandler = null;
+                },
+                wheelHandler(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    let [sx, sy] = this.getMousePosition(e);
+
+                    const dx = (this.parameters.width.value / 2 - sx) / this.parameters.scale.value;
+                    const dy = (this.parameters.height.value / 2 - sy) / this.parameters.scale.value;
+
+                    const zoomFactor = 1.2;
+
+                    if (e.deltaY < 0) {
+                        this.parameters.scale.value *= zoomFactor;
+                        this.parameters.cx.value -= dx * ((zoomFactor - 1) / zoomFactor);
+                        this.parameters.cy.value += dy * ((zoomFactor - 1) / zoomFactor);
+                    } else {
+                        this.parameters.scale.value /= zoomFactor;
+                        this.parameters.cx.value += dx * (zoomFactor - 1);
+                        this.parameters.cy.value -= dy * (zoomFactor - 1);
+                    }
                 },
             },
             watch: {
