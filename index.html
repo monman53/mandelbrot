@@ -86,7 +86,9 @@ void main() {
                     <input type="range" min="0" max="200" step="1" v-model.number="parameters.maxIteration.value">
                     maxIteration: {{parameters.maxIteration.value}}
                 </label><br>
-                <button @click="reset">Reset</button>
+                <button @click="reset">Reset</button><br>
+                <button @click="parameters.scale.value /= 2">-</button>
+                <button @click="parameters.scale.value *= 2">+</button><br>
             </div>
         </div>
     </div>
